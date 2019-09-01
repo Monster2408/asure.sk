@@ -1,0 +1,102 @@
+Options:
+	parkour_map_name: "asure"
+	#アスレマップの名前
+	
+	place_cancel_message: "&8[&c&lMLS&8] &cあなたはブロックを設置することはできません"
+	#ブロックの設置をキャンセルしたときに流れるメッセージです
+	
+	break_cancel_message: "&8[&c&lMLS&8] &cあなたはブロックを破壊することはできません"
+	#ブロックの設置をキャンセルしたときに流れるメッセージです
+	
+	hit_cancel_message: "&8[&c&lMLS&8] &cあなたはそのプレイヤーを殴ることはできません"
+	#ブロックの設置をキャンセルしたときに流れるメッセージです
+	
+	block_of_check_point: beacon
+	#チェックポイント用のブロック
+	under_block_of_check_point: glowstone
+	#チェックポイント用のブロックの下のブロック
+	sound_of_set_check_point: "entity_player_levelup"
+	#チェックポイントを設定したときの音
+	message_of_set_check_point: "&8[&c&lMLS&8] &5チェックポイントを設定しました"
+	#チェックポイントを設定したときの音
+	sound_of_teleport_check_point: "entity_endermen_teleport"
+	#テレポートしたときの音
+	teleport_message_of_check_point: "&8[&c&lMLS&8] &5チェックポイントにテレポートしました"
+	#チェックポイントにテレポートしたときのメッセージ
+	teleport_message_of_spawn_point: "&8[&c&lMLS&8] &5スポーンポイントにテレポートしました"
+	#スポーンポイントにテレポートしたときのメッセージ
+	
+	could_not_teleport: "block_anvil_use"
+	#テレポートできなかったときの音
+	could_not_teleport_message: "&8[&c&lMLS&8] &cアスレマップでなければテレポートできません"
+	#テレポートできなかったときのメッセージ
+
+on place:
+	player is in {@parkour_map_name}
+	player's gamemode is not creative
+	send {@place_cancel_message} to player
+	cancel event 
+	
+on break:
+	player is in {@parkour_map_name}
+	player's gamemode is not creative
+	send {@break_cancel_message} to player
+	cancel event 
+
+on damage:
+	attacker is a player
+	victim is a player
+	attacker is in {@parkour_map_name}
+	attacker's gamemode is not creative
+	send {@hit_cancel_message} to player
+	cancel event 
+	
+on damage:
+	victim is in {@parkour_map_name}
+	damage cause is fall
+	cancel event
+	
+on rightclick:
+	player is in {@parkour_map_name}
+	if event-block is not {@block_of_check_point}:
+		event-item is red dye named "&6Teleport Spawn point"
+		cancel event
+		if {%UUID of player%.spawnpoint} is set:
+			teleport player to {%UUID of player%.spawnpoint}
+			send {@teleport_message_of_check_point} to player
+			play {@sound_of_teleport_check_point} to player at volume 1
+			stop
+		else:
+			teleport player to spawnpoint of player's world
+			send {@teleport_message_of_spawn_point} to player
+			play {@sound_of_teleport_check_point} to player at volume 1
+			stop
+	if event-block is {@block_of_check_point}:
+		block under the event-block is {@under_block_of_check_point}
+		cancel event
+		if block under the player is not air:
+			set {%UUID of player%.spawnpoint} to location of player
+			send {@message_of_set_check_point} to player
+			play {@sound_of_set_check_point} to player at volume 1
+			stop
+		else:
+			stop
+	
+command /checktp:
+	trigger:
+		if player is in {@parkour_map_name}:
+			if {%UUID of player%.spawnpoint} is set:
+				teleport player to {%UUID of player%.spawnpoint}
+				send {@teleport_message_of_check_point} to player
+				play {@sound_of_teleport_check_point} to player at volume 1
+				stop
+			else:
+				teleport player to spawnpoint of player's world
+				send {@teleport_message_of_spawn_point} to player
+				play {@sound_of_teleport_check_point} to player at volume 1
+				stop
+		else:
+			send {@could_not_teleport_message} to player
+			play {@could_not_teleport} to player at volume 1
+			stop
+	
